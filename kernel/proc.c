@@ -164,6 +164,7 @@ freeproc(struct proc *p)
   p->killed = 0;
   p->xstate = 0;
   p->state = UNUSED;
+  p->syscallnum = 0;
 }
 
 // Create a user page table for a given process,
@@ -654,7 +655,7 @@ procdump(void)
     printf("\n");
   }
 }
-
+//calculate pro num
 uint64
 count_process(void){
     uint64 cnt=0;

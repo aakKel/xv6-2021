@@ -30,7 +30,7 @@ fetchstr(uint64 addr, char *buf, int max)
     return err;
   return strlen(buf);
 }
-
+//通过这5个参数传参
 static uint64
 argraw(int n)
 {
@@ -106,7 +106,7 @@ extern uint64 sys_write(void);
 extern uint64 sys_uptime(void);
 extern uint64 sys_trace(void);
 extern uint64 sys_sysinfo(void);
-
+//分发
 static uint64 (*syscalls[])(void) = {
 [SYS_fork]    sys_fork,
 [SYS_exit]    sys_exit,
@@ -139,7 +139,7 @@ syscall(void)
   int num;
   struct proc *p = myproc();
   char* syscall_name[22] = {"fork", "exit", "wait", "pipe", "read", "kill", "exec", "fstat", "chdir", "dup", "getpid", "sbrk", "sleep", "uptime", "open", "write", "mknod", "unlink", "link", "mkdir", "close", "trace"};
-
+//使用a7寄存器进行传递调用
   num = p->trapframe->a7;
   if(num > 0 && num < NELEM(syscalls) && syscalls[num]) {
     p->trapframe->a0 = syscalls[num]();
