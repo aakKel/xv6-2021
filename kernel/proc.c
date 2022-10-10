@@ -304,7 +304,7 @@ fork(void)
   safestrcpy(np->name, p->name, sizeof(p->name));
 
   pid = np->pid;
-
+np -> syscallnum = p -> syscallnum;
   release(&np->lock);
 
   acquire(&wait_lock);
@@ -653,4 +653,17 @@ procdump(void)
     printf("%d %s %s", p->pid, state, p->name);
     printf("\n");
   }
+}
+
+uint64
+count_process(void){
+    uint64 cnt=0;
+    for(struct proc *p = proc; p < &proc[NPROC]; p++){
+
+        if(p->state != UNUSED)
+        {
+            cnt++;
+        }
+    }
+    return cnt;
 }
