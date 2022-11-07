@@ -49,6 +49,8 @@ kvmmake(void)
   return kpgtbl;
 }
 
+
+
 // Initialize the one kernel_pagetable
 void
 kvminit(void)
@@ -129,7 +131,21 @@ kvmmap(pagetable_t kpgtbl, uint64 va, uint64 pa, uint64 sz, int perm)
   if(mappages(kpgtbl, va, sz, pa, perm) != 0)
     panic("kvmmap");
 }
+uint64
+kvmpa(pagetable_t pgtbl, uint64 va)
+{
+    uint64 off = va % PGSIZE;
+    pte_t *pte;
+    uint64 pa;
 
+    pte = walk(pgtbl, va, 0);
+    if(pte == 0)
+        panic("kvmpa");
+    if((*pte & PTE_V) == 0)
+        panic("kvmpa");
+    pa = PTE2PA(*pte);
+    return pa+off;
+}
 // Create PTEs for virtual addresses starting at va that refer to
 // physical addresses starting at pa. va and size might not
 // be page-aligned. Returns 0 on success, -1 if walk() couldn't
@@ -432,3 +448,26 @@ copyinstr(pagetable_t pagetable, char *dst, uint64 srcva, uint64 max)
     return -1;
   }
 }
+void vmprintlevel(pagetable_t pt, int level) {
+    char *delim = 0;
+    if (level == 2) delim = "..";
+    if (level == 1) delim = ".. ..";
+    if (level == 0) delim = ".. .. ..";
+    for (int i = 0; i < 512; i++) {
+        pte_t pte = pt[i];
+        if ((pte & PTE_V)) {
+            //  this PTE points to a lower level page table.
+            printf("%s%d: pte %p pa %p\n", delim, i, pte, PTE2PA(pte));
+            uint64 child = PTE2PA(pte);
+            if (level != 0) {
+                vmprintlevel((pagetable_t)child, level - 1);
+            }
+        }
+    }
+}
+
+void vmprint(pagetable_t pt) {
+    printf("page table %p\n", pt);
+    vmprintlevel(pt, 2);
+}
+
