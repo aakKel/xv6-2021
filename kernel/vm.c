@@ -455,8 +455,9 @@ void vmprintlevel(pagetable_t pt, int level) {
     if (level == 0) delim = ".. .. ..";
     for (int i = 0; i < 512; i++) {
         pte_t pte = pt[i];
+        //如果页表项存在
         if ((pte & PTE_V)) {
-            //  this PTE points to a lower level page table.
+
             printf("%s%d: pte %p pa %p\n", delim, i, pte, PTE2PA(pte));
             uint64 child = PTE2PA(pte);
             if (level != 0) {
