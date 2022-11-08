@@ -95,6 +95,7 @@ struct proc {
 
   // wait_lock must be held when using this:
   struct proc *parent;         // Parent process
+  //usyscall 声明
   struct usyscall *usyscall;
 
   // these are private to the process, so p->lock need not be held.
