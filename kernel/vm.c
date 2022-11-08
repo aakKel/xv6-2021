@@ -448,20 +448,25 @@ copyinstr(pagetable_t pagetable, char *dst, uint64 srcva, uint64 max)
     return -1;
   }
 }
+// 递归打印 从顶级页表打印至0级页表
+// 实现的时候用的是从 0 - 2
 void vmprintlevel(pagetable_t pt, int level) {
-    char *delim = 0;
-    if (level == 2) delim = "..";
-    if (level == 1) delim = ".. ..";
-    if (level == 0) delim = ".. .. ..";
+
     for (int i = 0; i < 512; i++) {
         pte_t pte = pt[i];
         //如果页表项存在
         if ((pte & PTE_V)) {
-
-            printf("%s%d: pte %p pa %p\n", delim, i, pte, PTE2PA(pte));
+            printf("%s","..");
+            for (int j = 0;j < level; ++j) {
+                printf("%s"," ..");
+            }
+            printf("%d: pte %p pa %p\n", i, pte, PTE2PA(pte));
             uint64 child = PTE2PA(pte);
-            if (level != 0) {
-                vmprintlevel((pagetable_t)child, level - 1);
+            // 这个条件判断 应该使用 判断页表项指针指向的页表是存在的
+            // if ((pte & (PTE_R | PTE_W | PTE_X)) == 0)
+            // 与freewalk 一致
+            if (level < 2) {
+                vmprintlevel((pagetable_t)child, level + 1);
             }
         }
     }
@@ -469,7 +474,7 @@ void vmprintlevel(pagetable_t pt, int level) {
 
 void vmprint(pagetable_t pt) {
     printf("page table %p\n", pt);
-    vmprintlevel(pt, 2);
+    vmprintlevel(pt, 0);
 }
 
 int pgaccess(pagetable_t pagetable,uint64 start_va, int page_num, uint64 result_va)
