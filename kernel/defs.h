@@ -172,6 +172,8 @@ int             copyin(pagetable_t, char *, uint64, uint64);
 int             copyinstr(pagetable_t, char *, uint64, uint64);
 void            vmprint(pagetable_t );
 int             pgaccess(pagetable_t ,uint64 , int , uint64 );
+//为了能在sysproc.c 中使用walk
+pte_t*          walk(pagetable_t, uint64, int);
 // plic.c
 void            plicinit(void);
 void            plicinithart(void);
