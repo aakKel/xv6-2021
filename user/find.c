@@ -28,13 +28,13 @@ void find(char *target_path,char *target_file)
 
     if((fd = open(target_path, 0)) < 0)
     {
-        fprintf(2, "ls: cannot open %s\n", target_path);
+        fprintf(2, "cannot open %s\n", target_path);
         return;
     }
 
     if(fstat(fd, &st) < 0)
     {
-        fprintf(2, "ls: cannot stat %s\n", target_path);
+        fprintf(2, "cannot stat %s\n", target_path);
         close(fd);
         return;
     }
