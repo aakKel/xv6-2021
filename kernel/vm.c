@@ -60,6 +60,7 @@ kvminit(void)
 
 // Switch h/w page table register to the kernel's page table,
 // and enable paging.
+// 创建内核页表
 void
 kvminithart()
 {
