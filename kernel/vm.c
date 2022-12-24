@@ -452,7 +452,7 @@ copyinstr(pagetable_t pagetable, char *dst, uint64 srcva, uint64 max)
 // 递归打印 从顶级页表打印至0级页表
 // 实现的时候用的是从 0 - 2
 void vmprintlevel(pagetable_t pt, int level) {
-
+    //这边512 的原因：一个页表占4096，一个PTE占64byte ,则一个页表有512个页表项
     for (int i = 0; i < 512; i++) {
         pte_t pte = pt[i];
         //如果页表项存在
