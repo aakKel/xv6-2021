@@ -159,9 +159,11 @@ freeproc(struct proc *p)
   if(p->trapframe)
     kfree((void*)p->trapframe);
   p->trapframe = 0;
+  //释放共享页表
   if (p->usyscall)
       kfree((void*)p->usyscall);
   p->usyscall = 0;
+  
   if(p->pagetable)
     proc_freepagetable(p->pagetable, p->sz);
   p->pagetable = 0;
@@ -205,6 +207,7 @@ proc_pagetable(struct proc *p)
     return 0;
   }
 // 只读 PTE_R, 同时也要标记该页已经用过 PTE_U
+// 初始化页和页表
     if (mappages(pagetable, USYSCALL, PGSIZE,
                  (uint64)(p->usyscall),PTE_R | PTE_U) < 0) {
         uvmunmap(pagetable, TRAMPOLINE, 1, 0);
