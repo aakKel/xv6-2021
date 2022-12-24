@@ -472,7 +472,7 @@ void vmprintlevel(pagetable_t pt, int level) {
         }
     }
 }
-
+//打印
 void vmprint(pagetable_t pt) {
     printf("page table %p\n", pt);
     vmprintlevel(pt, 0);
