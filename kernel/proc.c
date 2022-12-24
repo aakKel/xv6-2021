@@ -204,9 +204,9 @@ proc_pagetable(struct proc *p)
     uvmfree(pagetable, 0);
     return 0;
   }
-//
-    if (mappages(pagetable, USYSCALL, PGSIZE, (uint64)(p->usyscall),
-                 PTE_R | PTE_U) < 0) {
+// 只读 PTE_R, 同时也要标记该页已经用过 PTE_U
+    if (mappages(pagetable, USYSCALL, PGSIZE,
+                 (uint64)(p->usyscall),PTE_R | PTE_U) < 0) {
         uvmunmap(pagetable, TRAMPOLINE, 1, 0);
         uvmunmap(pagetable, TRAPFRAME, 1, 0);
         uvmfree(pagetable, 0);
