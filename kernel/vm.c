@@ -465,6 +465,7 @@ void vmprintlevel(pagetable_t pt, int level) {
             uint64 child = PTE2PA(pte);
             // 这个条件判断 应该使用 判断页表项指针指向的页表是存在的
             // if ((pte & (PTE_R | PTE_W | PTE_X)) == 0)
+            // 用level < 2 也一样，总共只有三级页表，一开始输入的是0级->1级->2级
             // 与freewalk 一致
             if (level < 2) {
                 vmprintlevel((pagetable_t)child, level + 1);
