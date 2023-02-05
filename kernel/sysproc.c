@@ -55,6 +55,8 @@ sys_sbrk(void)
 uint64
 sys_sleep(void)
 {
+    //打印backtrace 调用
+    backtrace();
   int n;
   uint ticks0;
 
