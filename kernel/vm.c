@@ -290,6 +290,16 @@ uvmfree(pagetable_t pagetable, uint64 sz)
     uvmunmap(pagetable, 0, PGROUNDUP(sz)/PGSIZE, 1);
   freewalk(pagetable);
 }
+//父进程fork后的子进程使用的是父进程的物理页面，则需要在此物理页面
+//上增加引用计数。
+int kaddrefcnt(void* pa) { // 放在uvmcopy，增加引用计数
+    if(((uint64)pa % PGSIZE) != 0 || (char*)pa < end || (uint64)pa >= PHYSTOP)
+        return -1;
+    acquire(&ref.lock);
+    ++ref.cnt[(uint64)pa / PGSIZE];
+    release(&ref.lock);
+    return 0;
+}
 
 // Given a parent process's page table, copy
 // its memory into a child's page table.
@@ -298,32 +308,35 @@ uvmfree(pagetable_t pagetable, uint64 sz)
 // returns 0 on success, -1 on failure.
 // frees any allocated pages on failure.
 int
-uvmcopy(pagetable_t old, pagetable_t new, uint64 sz)
-{
-  pte_t *pte;
-  uint64 pa, i;
-  uint flags;
-  char *mem;
+uvmcopy(pagetable_t old, pagetable_t new, uint64 sz) {
+    pte_t *pte;
+    uint64 pa, i;
+    uint flags;
+    char *mem;
 
-  for(i = 0; i < sz; i += PGSIZE){
-    if((pte = walk(old, i, 0)) == 0)
-      panic("uvmcopy: pte should exist");
-    if((*pte & PTE_V) == 0)
-      panic("uvmcopy: page not present");
+    for (i = 0; i < sz; i += PGSIZE) {
+        if ((pte = walk(old, i, 0)) == 0)
+            panic("uvmcopy: pte should exist");
+        if ((*pte & PTE_V) == 0)
+            panic("uvmcopy: page not present");
 
-    pa = PTE2PA(*pte);
-    flags = PTE_FLAGS(*pte);
+        pa = PTE2PA(*pte);
+        flags = PTE_FLAGS(*pte);
 
-    // 若当前页面可写
-    if (flags & PTE_W) {
-        // 禁用写操作
-        flags = (flags | PTE_RTS) & ~PTE_W;
-        *pte = PA2PTE(pa) | flags;
-    }
-    if(mappages(new, i, PGSIZE, pa, flags) != 0){
-          uvmunmap(new, 0, i / PGSIZE, 1);
+        // 若当前页面可写
+        if (flags & PTE_W) {
+            // 禁用写操作
+            flags = (flags | PTE_RTS) & ~PTE_W;
+            *pte = PA2PTE(pa) | flags;
+        }
+        if (mappages(new, i, PGSIZE, pa, flags) != 0) {
+            uvmunmap(new, 0, i / PGSIZE, 1);
+            return -1;
+        }
+        kaddrefcnt(pa);
     }
     return 0;
+}
 
 
 //    if((mem = kalloc()) == 0)
