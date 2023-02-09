@@ -310,21 +310,35 @@ uvmcopy(pagetable_t old, pagetable_t new, uint64 sz)
       panic("uvmcopy: pte should exist");
     if((*pte & PTE_V) == 0)
       panic("uvmcopy: page not present");
+
     pa = PTE2PA(*pte);
     flags = PTE_FLAGS(*pte);
-    if((mem = kalloc()) == 0)
-      goto err;
-    memmove(mem, (char*)pa, PGSIZE);
-    if(mappages(new, i, PGSIZE, (uint64)mem, flags) != 0){
-      kfree(mem);
-      goto err;
-    }
-  }
-  return 0;
 
- err:
-  uvmunmap(new, 0, i / PGSIZE, 1);
-  return -1;
+    // 若当前页面可写
+    if (flags & PTE_W) {
+        // 禁用写操作
+        flags = (flags | PTE_RTS) & ~PTE_W;
+        *pte = PA2PTE(pa) | flags;
+    }
+    if(mappages(new, i, PGSIZE, pa, flags) != 0){
+          uvmunmap(new, 0, i / PGSIZE, 1);
+    }
+    return 0;
+
+
+//    if((mem = kalloc()) == 0)
+//      goto err;
+//    memmove(mem, (char*)pa, PGSIZE);
+//    if(mappages(new, i, PGSIZE, (uint64)mem, flags) != 0){
+//      kfree(mem);
+//      goto err;
+//    }
+//  }
+//  return 0;
+//
+// err:
+//  uvmunmap(new, 0, i / PGSIZE, 1);
+//  return -1;
 }
 
 // mark a PTE invalid for user access.
