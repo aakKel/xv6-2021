@@ -24,11 +24,6 @@ struct pp_ref {
 
 } ref;
 
-int kref_cnt(void *pa) {
-    //获取引用计数。
-    return ref.cnt[(uint64)pa / PGSIZE];
-}
-
 struct run {
   struct run *next;
 };
